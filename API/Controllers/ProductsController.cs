@@ -1,4 +1,3 @@
-using API.RequestHelpers;
 using Core.Entities;
 using Core.Interfaces;
 using Core.Specifications.Products;
@@ -6,32 +5,20 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
-    public class ProductsController : BaseController
+    public class ProductsController(IGenericRepository<Product> repository) : BaseController
     {
-        private readonly IGenericRepository<Product> _repository;
-
-        public ProductsController(IGenericRepository<Product> repository)
-        {
-            _repository = repository;
-        }
-
         [HttpGet("GetProducts")]
         public async Task<IActionResult> GetProducts([FromQuery]ProductSpecificationParameters parameters)
         {
             var specification = new ProductSpecification(parameters);
 
-            var products = await _repository.GetAllWithSpecificationAsync(specification);
-            var count = await _repository.CountAsync(specification);
-
-            var paginatedResult = new Pagination<Product>(parameters.PageIndex, parameters.PageSize, count, products);
-
-            return Ok(paginatedResult);
+            return await CreatePagedResult(repository, specification, parameters.PageSize, parameters.PageIndex);
         }
 
         [HttpGet("GetProductById/{id:int}")]
         public async Task<IActionResult> GetProductById(int id)
         {
-            var product = await _repository.GetEntityByIdAsync(id);
+            var product = await repository.GetEntityByIdAsync(id);
 
             return Ok(product);
         }
@@ -39,9 +26,9 @@ namespace API.Controllers
         [HttpPost("CreateProduct")]
         public async Task<IActionResult> CreateProduct(Product product)
         {
-            _repository.Create(product);
+            repository.Create(product);
 
-            var changeWasSuccessful = await _repository.SaveChangesAsync();
+            var changeWasSuccessful = await repository.SaveChangesAsync();
 
             if (changeWasSuccessful is false) return BadRequest();
 
@@ -51,13 +38,13 @@ namespace API.Controllers
         [HttpDelete("DeleteProduct/{id:int}")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
-            var product = await _repository.GetEntityByIdAsync(id);
+            var product = await repository.GetEntityByIdAsync(id);
             
             if (product is null) return NotFound();
 
-            _repository.Delete(product);
+            repository.Delete(product);
 
-            var changeWasSuccessful = await _repository.SaveChangesAsync();
+            var changeWasSuccessful = await repository.SaveChangesAsync();
 
             if (changeWasSuccessful is false) return BadRequest();
 
@@ -67,13 +54,13 @@ namespace API.Controllers
         [HttpPut("UpdateProduct/{id:int}")]
         public async Task<IActionResult> UpdateProduct(int id, Product product)
         {
-            var productExists = _repository.Exists(id);
+            var productExists = repository.Exists(id);
 
             if (productExists is false) return BadRequest();
 
-            _repository.Update(product);
+            repository.Update(product);
 
-            var changeWasSuccessful = await _repository.SaveChangesAsync();
+            var changeWasSuccessful = await repository.SaveChangesAsync();
 
             if (changeWasSuccessful is false) return BadRequest();
 
@@ -85,7 +72,7 @@ namespace API.Controllers
         {
             var specification = new BrandListSpecification();
 
-            var brands = await _repository.GetAllWithSpecificationAsync(specification);
+            var brands = await repository.GetAllWithSpecificationAsync(specification);
 
             return Ok(brands);
         }
@@ -95,7 +82,7 @@ namespace API.Controllers
         {
             var specification = new TypeListSpecification();
 
-            var types = await _repository.GetAllWithSpecificationAsync(specification);
+            var types = await repository.GetAllWithSpecificationAsync(specification);
 
             return Ok(types);
         }

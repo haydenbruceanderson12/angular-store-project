@@ -1,20 +1,10 @@
 using Core.Entities;
 using Core.Interfaces;
-using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 
 namespace Infrastructure.Helpers;
 
 public class SpecificationEvaluator<T> where T : BaseEntity
 {
-    /// <summary>
-    /// Modifies the IQueryable<T> which will be the query
-    /// sent to retrive data from the DB.
-    /// </summary>
-    /// <param name="query">The existing DB query.</param>
-    /// <param name="specification">The specification of changes to the query.</param>
-    /// <returns>
-    /// The modified query to retrieve data from the DB.
-    /// </returns>
     public static IQueryable<T> GetQuery(IQueryable<T> query, IBaseSpecification<T> specification)
     {
         if (specification.WhereClauseExpression is not null)
@@ -25,12 +15,12 @@ public class SpecificationEvaluator<T> where T : BaseEntity
 
         if (specification.OrderyByAscending is not null)
         {
-            query.OrderBy(specification.OrderyByAscending);
+            query = query.OrderBy(specification.OrderyByAscending);
         }
 
         if (specification.OrderyByDescending is not null)
         {
-            query.OrderByDescending(specification.OrderyByDescending);
+            query = query.OrderByDescending(specification.OrderyByDescending);
         }
 
         if (specification.IsDistinct)
@@ -56,12 +46,12 @@ public class SpecificationEvaluator<T> where T : BaseEntity
 
         if (specification.OrderyByAscending is not null)
         {
-            query.OrderBy(specification.OrderyByAscending);
+            query = query.OrderBy(specification.OrderyByAscending);
         }
 
         if (specification.OrderyByDescending is not null)
         {
-            query.OrderByDescending(specification.OrderyByDescending);
+            query = query.OrderByDescending(specification.OrderyByDescending);
         }
 
         var selectQuery = query as IQueryable<TResult>;

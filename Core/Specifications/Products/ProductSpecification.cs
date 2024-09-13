@@ -4,12 +4,6 @@ namespace Core.Specifications.Products;
 
 public class ProductSpecification : BaseSpecification<Product>
 {
-    // This query looks something like the below:
-    
-    // DB.Table.Where(product => *product.Contains(brands) && *product.Contains(types))
-    //      .Skip(x)
-    //      .Take(x)
-    //      .OrderyBy*(product.Name)
     public ProductSpecification(ProductSpecificationParameters parameters) : base(product => 
         (!parameters.Brands.Any() || parameters.Brands.Contains(product.Brand)) && 
         (!parameters.Types.Any()  || parameters.Types.Contains(product.Type)) 

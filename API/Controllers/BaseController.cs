@@ -1,4 +1,7 @@
 using System.Net;
+using API.RequestHelpers;
+using Core.Entities;
+using Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
@@ -14,9 +17,15 @@ namespace API.Controllers
     public class BaseController : ControllerBase
     {
         [HttpGet]
-        protected async Task<IActionResult> CreatePagedResult()
+        protected async Task<IActionResult> CreatePagedResult<T>(IGenericRepository<T> repository, 
+            IBaseSpecification<T> specification, int pageSize, int pageIndex) where T : BaseEntity
         {
-            return Ok();
+            var items = await repository.GetAllWithSpecificationAsync(specification);
+            var count = await repository.CountAsync(specification);
+
+            var paginatedResult = new Pagination<T>(pageIndex, pageSize, count, items);
+
+            return Ok(paginatedResult);
         }
     }
 }
