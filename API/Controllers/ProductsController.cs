@@ -1,38 +1,49 @@
+using API.RequestHelpers;
 using Core.Entities;
-using Infrastructure.Data;
+using Core.Interfaces;
+using Core.Specifications.Products;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace API.Controllers
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class ProductsController : ControllerBase
+    public class ProductsController : BaseController
     {
-        private readonly StoreDbContext _storeDbContext;
+        private readonly IGenericRepository<Product> _repository;
 
-        public ProductsController(StoreDbContext storeDbContext)
+        public ProductsController(IGenericRepository<Product> repository)
         {
-            _storeDbContext = storeDbContext;
+            _repository = repository;
         }
 
         [HttpGet("GetProducts")]
-        public async Task<IActionResult> GetProducts()
+        public async Task<IActionResult> GetProducts([FromQuery]ProductSpecificationParameters parameters)
         {
-            return Ok(await _storeDbContext.Products.ToListAsync());
+            var specification = new ProductSpecification(parameters);
+
+            var products = await _repository.GetAllWithSpecificationAsync(specification);
+            var count = await _repository.CountAsync(specification);
+
+            var paginatedResult = new Pagination<Product>(parameters.PageIndex, parameters.PageSize, count, products);
+
+            return Ok(paginatedResult);
         }
 
         [HttpGet("GetProductById/{id:int}")]
         public async Task<IActionResult> GetProductById(int id)
         {
-            return Ok(await _storeDbContext.Products.FindAsync(id));
+            var product = await _repository.GetEntityByIdAsync(id);
+
+            return Ok(product);
         }
 
         [HttpPost("CreateProduct")]
         public async Task<IActionResult> CreateProduct(Product product)
         {
-            _storeDbContext.Products.Add(product);
-            await _storeDbContext.SaveChangesAsync();
+            _repository.Create(product);
+
+            var changeWasSuccessful = await _repository.SaveChangesAsync();
+
+            if (changeWasSuccessful is false) return BadRequest();
 
             return Ok(product);
         }
@@ -40,27 +51,53 @@ namespace API.Controllers
         [HttpDelete("DeleteProduct/{id:int}")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
-            var product = await _storeDbContext.Products.FindAsync(id);
+            var product = await _repository.GetEntityByIdAsync(id);
             
             if (product is null) return NotFound();
 
-            _storeDbContext.Remove(product);
-            await _storeDbContext.SaveChangesAsync();
+            _repository.Delete(product);
 
-            return Ok();
+            var changeWasSuccessful = await _repository.SaveChangesAsync();
+
+            if (changeWasSuccessful is false) return BadRequest();
+
+            return NoContent();
         }
 
         [HttpPut("UpdateProduct/{id:int}")]
         public async Task<IActionResult> UpdateProduct(int id, Product product)
         {
-            var existingProduct = await _storeDbContext.Products.FindAsync(id);
+            var productExists = _repository.Exists(id);
 
-            if (existingProduct is null || existingProduct.Id != id) return NotFound();
+            if (productExists is false) return BadRequest();
 
-            _storeDbContext.Update(product);
-            await _storeDbContext.SaveChangesAsync();
+            _repository.Update(product);
+
+            var changeWasSuccessful = await _repository.SaveChangesAsync();
+
+            if (changeWasSuccessful is false) return BadRequest();
 
             return NoContent();
+        }
+
+        [HttpGet("GetProductBrands")]
+        public async Task<IActionResult> GetProductBrands()
+        {
+            var specification = new BrandListSpecification();
+
+            var brands = await _repository.GetAllWithSpecificationAsync(specification);
+
+            return Ok(brands);
+        }
+
+        [HttpGet("GetProductTypes")]
+        public async Task<IActionResult> GetProductTypes()
+        {
+            var specification = new TypeListSpecification();
+
+            var types = await _repository.GetAllWithSpecificationAsync(specification);
+
+            return Ok(types);
         }
     }
 }
