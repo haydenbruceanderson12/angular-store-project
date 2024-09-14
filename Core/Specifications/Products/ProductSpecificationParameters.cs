@@ -3,8 +3,8 @@ namespace Core.Specifications.Products;
 public class ProductSpecificationParameters
 {
     private const int MaxPageSize = 50;
-
     public int PageIndex { get; set; } = 1;
+    public string? Sort { get; set; } = string.Empty;
 
     private int _pageSize = 5;
     public int PageSize 
@@ -32,6 +32,11 @@ public class ProductSpecificationParameters
             _types = value.SelectMany(x => x.Split(',', StringSplitOptions.RemoveEmptyEntries)).ToList();
         }
     }
-    
-    public string? Sort { get; set; }
+
+    private string? _search;
+    public string Search
+    {
+        get => _search ?? string.Empty;
+        set => _search = value.ToLower();
+    }
 }

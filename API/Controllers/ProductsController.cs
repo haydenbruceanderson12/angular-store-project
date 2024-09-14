@@ -7,7 +7,7 @@ namespace API.Controllers
 {
     public class ProductsController(IGenericRepository<Product> repository) : BaseController
     {
-        [HttpGet("GetProducts")]
+        [HttpGet]
         public async Task<IActionResult> GetProducts([FromQuery]ProductSpecificationParameters parameters)
         {
             var specification = new ProductSpecification(parameters);
@@ -15,7 +15,7 @@ namespace API.Controllers
             return await CreatePagedResult(repository, specification, parameters.PageSize, parameters.PageIndex);
         }
 
-        [HttpGet("GetProductById/{id:int}")]
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetProductById(int id)
         {
             var product = await repository.GetEntityByIdAsync(id);
@@ -23,7 +23,7 @@ namespace API.Controllers
             return Ok(product);
         }
 
-        [HttpPost("CreateProduct")]
+        [HttpPost]
         public async Task<IActionResult> CreateProduct(Product product)
         {
             repository.Create(product);
@@ -35,7 +35,7 @@ namespace API.Controllers
             return Ok(product);
         }
 
-        [HttpDelete("DeleteProduct/{id:int}")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
             var product = await repository.GetEntityByIdAsync(id);
@@ -51,7 +51,7 @@ namespace API.Controllers
             return NoContent();
         }
 
-        [HttpPut("UpdateProduct/{id:int}")]
+        [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdateProduct(int id, Product product)
         {
             var productExists = repository.Exists(id);
@@ -67,7 +67,7 @@ namespace API.Controllers
             return NoContent();
         }
 
-        [HttpGet("GetProductBrands")]
+        [HttpGet("brands")]
         public async Task<IActionResult> GetProductBrands()
         {
             var specification = new BrandListSpecification();
@@ -77,7 +77,7 @@ namespace API.Controllers
             return Ok(brands);
         }
 
-        [HttpGet("GetProductTypes")]
+        [HttpGet("types")]
         public async Task<IActionResult> GetProductTypes()
         {
             var specification = new TypeListSpecification();
