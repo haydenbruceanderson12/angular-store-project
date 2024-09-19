@@ -7,6 +7,13 @@ namespace API.Controllers
 {
     public class ProductsController(IGenericRepository<Product> repository) : BaseController
     {
+        /// <summary>
+        /// Get products given parameters.
+        /// </summary>
+        /// <param name="parameters"></param>
+        /// <returns>
+        /// Products as a paginated result object.
+        /// </returns>
         [HttpGet]
         public async Task<IActionResult> GetProducts([FromQuery]ProductSpecificationParameters parameters)
         {
